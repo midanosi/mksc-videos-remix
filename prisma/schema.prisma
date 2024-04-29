@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// model Players {
+//   pid       Int      @id @default(autoincrement())
+//   Name      String
+//   Country   String
+//   Nickname  String
+//   DateAdded DateTime
+//   Email     String
+// }
+
+// /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+// model main {
+//   pid   Int
+//   cid   Int
+//   time  Decimal
+//   tdate DateTime
+
+//   @@ignore
+// }
+model mkscvids {
+  cid    Int
+  time   Float
+  link   String @unique
+  mode   Int
+  player String
+  // course Course @relation(fields: [cid], references: [cid])
+}
+
+model mkscytnames {
+  id   String @unique
+  name String
+}
+
+// model Course {
+//   cid Int @id 
+//   name String
+//   isCourse Boolean
+//   records mkscvids[]
+// }

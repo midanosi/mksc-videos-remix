@@ -5,6 +5,20 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import globalStyles from "~/styles/global.css?url";
+
+export function links() {
+  return [
+    {
+      rel: "stylesheet",
+      href: "https://unpkg.com/modern-css-reset@1.4.0/dist/reset.min.css",
+    },
+    {
+      rel: "stylesheet",
+      href: globalStyles,
+    },
+  ];
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
