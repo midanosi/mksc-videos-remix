@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 // import { courses } from "../../../courses";
 // import { getModeColor } from "../../../utils";
 import { chunkArray } from "~/lib/chunkArray";
