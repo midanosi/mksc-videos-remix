@@ -7,8 +7,8 @@ services:
     name: mkscvids-web
     env: node
     plan: free
-    buildCommand: npm install -g pnpm@8.15.7 && pnpm i && pnpm run build
-    startCommand: npx prisma migrate deploy && pnpm run start
+    buildCommand: "npm install -g pnpm@8.15.7 && pnpm install && pnpm run build"
+    startCommand: "npx prisma migrate deploy && pnpm run start"
     healthCheckPath: /healthcheck
     envVars:
       - key: DATABASE_URL
