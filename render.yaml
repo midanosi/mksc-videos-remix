@@ -1,10 +1,10 @@
 databases:
-  - name: remixdb
+  - name: mkscvids
     plan: free
 
 services:
   - type: web
-    name: remix
+    name: mkscvids-web
     env: node
     plan: free
     buildCommand: npm ci --production=false && npm run build && npm prune --production
@@ -13,7 +13,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: remixdb
+          name: mkscvids
           property: connectionString
       - key: SESSION_SECRET
         generateValue: true
