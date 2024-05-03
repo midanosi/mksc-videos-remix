@@ -7,7 +7,7 @@ services:
     name: mkscvids-web
     env: node
     plan: free
-    buildCommand: pnpm i && pnpm run build
+    buildCommand: npm install -g pnpm@8.15.7 pnpm i && pnpm run build
     startCommand: npx prisma migrate deploy && pnpm run start
     healthCheckPath: /healthcheck
     envVars:
