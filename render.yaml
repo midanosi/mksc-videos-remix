@@ -9,7 +9,7 @@ services:
     plan: free
     # buildCommand: "npm install -g pnpm@8.15.7 && pnpm install && pnpm run build"
     # startCommand: "npx prisma migrate deploy && pnpm run start"
-    buildCommand: npm ci --production=false && npm run build && npm prune --production
+    buildCommand: npm i && npm run build && npm prune --production
     startCommand: npx prisma migrate deploy && npm run start
     healthCheckPath: /healthcheck
     envVars:
