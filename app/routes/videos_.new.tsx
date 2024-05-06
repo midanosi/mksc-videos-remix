@@ -23,7 +23,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
   const newVid = await db.mkscvids.create({
     data: {
-      link: String(link),
+      link: youtubeId,
       mode: Number(mode),
       time: Number(time),
       cid: Number(cid),
