@@ -1,24 +1,22 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model mkscvids {
-  id           Int
-  cid          Int
-  time         Float
-  link         String @unique
-  mode         Int
-  player       String
-  uploaded_at  DateTime?
-  standard     String?
+  id          Int       @id @default(autoincrement())
+  cid         Int?
+  time        Decimal?  @db.Decimal(10, 2)
+  link        String?
+  mode        Int?
+  player      String?
+  uploaded_at DateTime? @db.Date
+  standard    String?
   // course Course @relation(fields: [cid], references: [cid])
   // standard Standard @relation(fields: [cid], references: [cid])
 }
