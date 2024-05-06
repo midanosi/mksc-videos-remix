@@ -207,6 +207,22 @@ export default function EditVideo() {
           <button type="button" onClick={() => navigate(-1)}>
             Cancel
           </button>
+          <Form
+            action="destroy"
+            method="post"
+            onSubmit={(event) => {
+              const response = confirm(
+                "Please confirm you want to delete this record."
+              );
+              if (!response) {
+                event.preventDefault();
+              }
+            }}
+          >
+            <button type="submit" className="border-red-600">
+              Delete
+            </button>
+          </Form>
         </div>
       </Form>
       <LinkPreview link={inputLink} />
