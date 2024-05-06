@@ -17,8 +17,14 @@ model mkscvids {
   player      String?
   uploaded_at DateTime? @db.Date
   standard    String?
+  is_alive    Boolean   @default(false)
   // course Course @relation(fields: [cid], references: [cid])
   // standard Standard @relation(fields: [cid], references: [cid])
+}
+
+model mkscytnames {
+  id   String @unique
+  name String
 }
 
 // model Course {

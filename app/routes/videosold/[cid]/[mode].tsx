@@ -1,6 +1,6 @@
 // import { courses } from "../../../courses";
 // import { getModeColor } from "../../../utils";
-import { chunkArray } from "~/lib/chunkArray";
+import { chunk_array } from "~/lib/chunk_array";
 import { getStandardsArray } from "~/lib/getStandardsArray.server";
 import { standardTitles } from "~/lib/standardTitles";
 import { formatTime } from "~/lib/formatTime";
@@ -67,7 +67,7 @@ async function getLoaderData() {
     ytNameItems.map((item) => [item.id, item.name])
   );
 
-  const ytLinksInChunksOf50 = chunkArray(
+  const ytLinksInChunksOf50 = chunk_array(
     mkscvids.map((vid) => vid.link),
     50
   );
