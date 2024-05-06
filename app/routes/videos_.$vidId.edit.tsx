@@ -240,9 +240,8 @@ export default function EditVideo() {
             aria-label="uploaded_at"
             name="uploaded_at"
             className="pointer-events-none"
-            disabled
-            aria-disabled="true"
-            defaultValue={mkscvid.player ?? ""}
+            readOnly
+            defaultValue={mkscvid.uploaded_at ?? ""}
           />
         </p>
 

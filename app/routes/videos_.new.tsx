@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useFetcher, useNavigate } from "@remix-run/react";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { courses } from "~/lib/courses";
 import { formatTime } from "~/lib/formatTime";
 
@@ -30,7 +30,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       cid: Number(cid),
       player: String(player),
       is_alive: true,
-      uploaded_at: String(uploaded_at),
+      uploaded_at: uploaded_at,
     },
   });
   const modes = ["nonzzmt", "zzmt", "sc", "nolapskips"];
@@ -45,7 +45,6 @@ export default function CreateNew() {
   const navigate = useNavigate();
   const [formattedTime, setFormattedTime] = useState(formatTime(0));
 
-  const publishedAtRef = useRef<HTMLInputElement>(null);
   const [inputLink, setInputLink] = useState("");
   const youtubeId = useMemo(
     () => (inputLink.includes("v=") ? inputLink.split("v=")[1] : inputLink),
@@ -58,13 +57,6 @@ export default function CreateNew() {
       fetcher.load(`/query_youtube?yturl=${youtubeId}`);
     }
   }, [youtubeId]);
-
-  useEffect(() => {
-    if (fetcher.data?.youtubeMetadata && publishedAtRef.current) {
-      publishedAtRef.current.value =
-        fetcher.data?.youtubeMetadata?.snippet.publishedAt;
-    }
-  }, [fetcher]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -205,13 +197,11 @@ export default function CreateNew() {
           <span>Published At</span>
           <br />
           <input
-            ref={publishedAtRef}
             type="text"
             aria-label="uploaded_at"
             name="uploaded_at"
-            className="pointer-events-none"
-            disabled
-            aria-disabled="true"
+            value={fetcher.data?.youtubeMetadata?.snippet.publishedAt ?? ""}
+            readOnly
           />
         </p>
 
