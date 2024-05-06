@@ -5,8 +5,8 @@ import { db } from "~/lib/db.server";
 import { courses } from "~/lib/courses";
 import { getModeColor } from "~/lib/getModeColor";
 import type { LoaderFunctionArgs } from "@remix-run/node"; // or cloudflare/deno
-import { json } from "@remix-run/node"; // or cloudflare/deno
-import { useLoaderData } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node"; // or cloudflare/deno
+import { Link, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns/format";
 import { useMemo, useState } from "react";
 
@@ -24,7 +24,12 @@ async function getLoaderData(params: { cid: string; mode: string }) {
     sc: 2,
     nolapskips: 3,
   };
-  console.log(`params.mode`, params.mode);
+  if (params.cid === null) {
+    throw redirect(`/`);
+  }
+  if (params.mode === null) {
+    throw redirect(`/`);
+  }
   const modeId = modeNameToModeId[params.mode];
   if (modeId === undefined) {
     throw new Error("modeId not valid");
@@ -123,7 +128,7 @@ export default function Videos() {
                     fontSize: mode === modeOption ? "1.4rem" : "1rem",
                     lineHeight: mode === modeOption ? "1" : "1.2",
                   }}
-                  href={`/videos?=${cid}&mode=${modeOption}`}
+                  href={`/videos?cid=${cid}&mode=${modeOption}`}
                 >
                   {modeOption}
                 </a>
@@ -229,7 +234,7 @@ export default function Videos() {
                     ) : null}
                     {isAdmin ? (
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white hover:underline hover:cursor-pointer">
-                        {`✏️ Edit`}
+                        <Link to={`${mkscvid.id}/edit`}>{`✏️ Edit`}</Link>
                       </td>
                     ) : null}
                   </tr>

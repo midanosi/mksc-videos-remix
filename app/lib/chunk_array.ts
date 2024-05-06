@@ -9,11 +9,10 @@ function chunk_array<ItemType>(
     if (index % chunk === 0)
       chunked_array.push(input_array.slice(index, index + chunk));
   });
-  console.log(`chunked_array`, chunked_array);
   const array_of_left_overs = chunked_array.filter((a) => a.length < chunk);
   const left_overs =
     array_of_left_overs.length > 0 ? array_of_left_overs[0] : [];
-  console.log(`left_overs`, left_overs);
+
   chunked_array = chunked_array.filter((a) => a.length >= chunk);
   chunked_array[chunked_array.length] = [...left_overs];
   return chunked_array;

@@ -5,7 +5,6 @@ function notNull<TValue>(value: TValue | null): value is TValue {
   return value !== null;
 }
 const ytAPIKey = process.env.YT_API_KEY;
-console.log(`ytAPIKey`, ytAPIKey);
 
 async function check_for_dead() {
   const allVids = await db.mkscvids.findMany();
@@ -29,7 +28,6 @@ async function check_for_dead() {
       const json = await res.json();
 
       if (json.items) {
-        console.log(`json.items.length`, json.items.length);
         for (const item of json.items) {
           const videoId = item.id;
           const snippet = item.snippet;
@@ -41,10 +39,8 @@ async function check_for_dead() {
       return;
     })
   );
-  console.log(`dictOfAliveLinks`, dictOfAliveLinks);
   await Promise.all(
     allVids.map(async (vid) => {
-      console.log(`vid`, vid);
       if (vid.link) {
         const shortLink = vid.link?.slice(0, 11);
         const is_alive = dictOfAliveLinks[shortLink] ?? false;

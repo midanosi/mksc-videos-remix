@@ -5,7 +5,6 @@ function notNull<TValue>(value: TValue | null): value is TValue {
   return value !== null;
 }
 const ytAPIKey = process.env.YT_API_KEY;
-console.log(`ytAPIKey`, ytAPIKey);
 
 async function scrape_yt() {
   const vidsMissingData = await db.mkscvids.findMany({
@@ -55,7 +54,6 @@ async function scrape_yt() {
               },
             });
             recordsUpdated += 1;
-            console.log(`recordsUpdated`, recordsUpdated);
           }
         }
       }

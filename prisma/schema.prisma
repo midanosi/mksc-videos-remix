@@ -10,10 +10,10 @@ datasource db {
 
 model mkscvids {
   id          Int       @id @default(autoincrement())
-  cid         Int?
-  time        Decimal?  @db.Decimal(10, 2)
-  link        String?
-  mode        Int?
+  cid         Int
+  time        Decimal   @db.Decimal(10, 2)
+  link        String
+  mode        Int
   player      String?
   uploaded_at DateTime? @db.Date
   standard    String?
