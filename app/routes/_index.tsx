@@ -66,7 +66,11 @@ function Index() {
 
       <div className="h-2" />
 
-      {isAdmin ? <Link to="/videos/new">Add new video</Link> : null}
+      {isAdmin ? (
+        <div className="p-1 border border-green-600 bg-green-200  px-2 w-fit rounded-md">
+          <Link to="/videos/new">Add a new video!</Link>
+        </div>
+      ) : null}
     </main>
   );
 }
