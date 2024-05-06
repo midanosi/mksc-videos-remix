@@ -7,6 +7,8 @@ import { getModeColor } from "~/lib/getModeColor";
 import type { LoaderFunctionArgs } from "@remix-run/node"; // or cloudflare/deno
 import { json } from "@remix-run/node"; // or cloudflare/deno
 import { useLoaderData } from "@remix-run/react";
+import { format } from "date-fns/format";
+import { useMemo, useState } from "react";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -60,18 +62,30 @@ export default function Videos() {
   const courseLapType = cid % 2 === 0 ? "Course" : "Flap";
   const otherTypeCid = courseLapType === "Course" ? cid + 1 : cid - 1;
 
+  const [displayingDeadLinks, setDisplayingDeadLinks] = useState(false);
+  const isAdmin = true;
+  const deadLinksCount = mkscvids.filter((mkscvid) => !mkscvid.is_alive).length;
+
+  const videosList = useMemo(() => {
+    if (displayingDeadLinks) {
+      return mkscvids;
+    } else {
+      return mkscvids.filter((mkscvid) => mkscvid.is_alive);
+    }
+  }, [displayingDeadLinks, mkscvids]);
+
   return (
     <div className="flex flex-col h-full min-h-screen">
       <header className="flex items-center justify-between p-4 bg-slate-800">
-        <h3 className="font-bold">
+        <h3 className="font-bold text-white">
           <a href="/"> Home</a>
         </h3>
       </header>
 
       <main className="h-full bg-white ml-20">
         <div
-          className="flex justify-between items-center"
-          style={{ width: "26rem" }}
+          className="flex items-center gap-4"
+          // style={{ width: "26rem" }}
         >
           <div className="p-4">
             <h1 className="text-3xl whitespace-nowrap mb-2 font-bold">
@@ -121,6 +135,16 @@ export default function Videos() {
             alt={`thumbnail for ${getCourseName(cid)}`}
             className="w-40 h-30 overflow-hidden"
           />
+          {deadLinksCount > 0 ? (
+            <button
+              onClick={() => setDisplayingDeadLinks((old) => !old)}
+              className="w-max ml-2 border-blue-500 border-2 rounded-md p-2 hover:bg-blue-500 hover:text-white"
+            >
+              {displayingDeadLinks
+                ? "Hide dead links"
+                : `Display dead links (${deadLinksCount})`}
+            </button>
+          ) : null}
         </div>
         <div className="h-full border-r shadow-md w-80 bg-gray-50 sm:rounded-lg">
           <table className="min-w-full">
@@ -142,6 +166,12 @@ export default function Videos() {
                   scope="col"
                   className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400"
                 >
+                  Standard
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400"
+                >
                   Date
                 </th>
                 <th
@@ -150,13 +180,23 @@ export default function Videos() {
                 >
                   URL
                 </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Edit</span>
-                </th>
+                {displayingDeadLinks ? (
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400"
+                  >
+                    Dead link?
+                  </th>
+                ) : null}
+                {isAdmin ? (
+                  <th scope="col" className="relative px-6 py-3">
+                    <span className="sr-only">Edit</span>
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
-              {mkscvids?.map((mkscvid) => {
+              {videosList?.map((mkscvid) => {
                 return (
                   <tr
                     key={mkscvid.link}
@@ -166,7 +206,7 @@ export default function Videos() {
                       style={{ fontVariantNumeric: "tabular-nums" }}
                       className="text-right px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white"
                     >
-                      {formatTime(mkscvid.time)}
+                      {mkscvid.time ? formatTime(Number(mkscvid.time)) : ""}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white">
                       {mkscvid.player}
@@ -175,11 +215,23 @@ export default function Videos() {
                       {mkscvid.standard}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white">
-                      {mkscvid.date}
+                      {mkscvid.uploaded_at
+                        ? format(new Date(mkscvid.uploaded_at), "do MMM yyyy")
+                        : ""}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white underline">
                       <a href={`https://youtu.be/${mkscvid.link}`}>URL</a>
                     </td>
+                    {displayingDeadLinks ? (
+                      <td className="px-6 py-4 text-lg text-gray-500 whitespace-nowrap dark:text-white">
+                        {mkscvid.is_alive ? "" : "💀"}
+                      </td>
+                    ) : null}
+                    {isAdmin ? (
+                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white hover:underline hover:cursor-pointer">
+                        {`✏️ Edit`}
+                      </td>
+                    ) : null}
                   </tr>
                 );
               })}

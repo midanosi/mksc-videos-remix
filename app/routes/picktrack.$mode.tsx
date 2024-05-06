@@ -30,7 +30,10 @@ export default function PickTrack() {
             const cid = idx * 2;
             return (
               <Link key={cid} to={`/videos?cid=${cid}&mode=${mode}`}>
-                <div className="relative w-16 h-10 overflow-hidden md:w-36 md:h-24">
+                <div
+                  className="relative w-16 h-10 overflow-hidden md:w-36 md:h-24 outline outline-2
+                 outline-transparent hover:outline-blue-800 focus:outline-blue-800"
+                >
                   <h3 className="absolute w-full text-xs text-center text-white transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 md:text-md md:whitespace-nowrap bg-black-700 top-4 md:top-6 left-1/2">
                     {course.replace("Retro", "R")}
                   </h3>

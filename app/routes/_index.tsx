@@ -47,21 +47,15 @@ function Index() {
                   pathname: `/picktrack/${mode.id}`,
                   // query: { mode: mode.id }
                 }}
+                className={`p-2 transition border hover:bg-gray-200 max-w-60`}
               >
-                <a
-                  className={`p-2 grayscale transition hover:grayscale-0 focus:grayscale-0 border hover:bg-gray-200`}
-                >
-                  <h3
-                    style={{ color: modeColor }}
-                    className="text-2xl font-bold"
-                  >
-                    {mode.title}
-                  </h3>
-                  <div>{mode.desc}</div>
-                  {mode.desc2 ? (
-                    <span className="opacity-50">{mode.desc2}</span>
-                  ) : null}
-                </a>
+                <h3 style={{ color: modeColor }} className="text-2xl font-bold">
+                  {mode.title}
+                </h3>
+                <div>{mode.desc}</div>
+                {mode.desc2 ? (
+                  <span className="opacity-50">{mode.desc2}</span>
+                ) : null}
               </Link>
             );
           })}
