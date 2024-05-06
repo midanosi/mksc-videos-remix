@@ -49,7 +49,7 @@ export default function Admin() {
         <Form method="post">
           <div className="mt-10 ml-2">
             <label htmlFor="password">Password</label>
-            <input name="password"></input>
+            <input name="password" type="password"></input>
             <button type="submit">Submit</button>
           </div>
           <div className="h-2"></div>
