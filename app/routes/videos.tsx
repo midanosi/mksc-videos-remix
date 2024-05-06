@@ -8,7 +8,8 @@ import type { LoaderFunctionArgs } from "@remix-run/node"; // or cloudflare/deno
 import { json, redirect } from "@remix-run/node"; // or cloudflare/deno
 import { Link, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns/format";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
+import { AdminContext } from "~/context/AdminContext";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -59,6 +60,7 @@ const getCourseName = (cid) => {
 };
 
 export default function Videos() {
+  const { isAdmin } = useContext(AdminContext);
   const { mkscvids, mode, cid } = useLoaderData<typeof loader>();
   // const mkscvids = props.mkscvids;
   // const mode = props.params.mode;
@@ -68,7 +70,6 @@ export default function Videos() {
   const otherTypeCid = courseLapType === "Course" ? cid + 1 : cid - 1;
 
   const [displayingDeadLinks, setDisplayingDeadLinks] = useState(false);
-  const isAdmin = true;
   const deadLinksCount = mkscvids.filter((mkscvid) => !mkscvid.is_alive).length;
 
   const videosList = useMemo(() => {
@@ -83,7 +84,12 @@ export default function Videos() {
     <div className="flex flex-col h-full min-h-screen">
       <header className="flex items-center justify-between p-4 bg-slate-800">
         <h3 className="font-bold text-white">
-          <a href="/"> Home</a>
+          <Link to="/"> Home</Link>
+        </h3>
+        <h3 className="font-bold text-white">
+          <Link to="/admin">
+            {isAdmin ? "Admin mode on" : "Turn on Admin mode?"}
+          </Link>
         </h3>
       </header>
 

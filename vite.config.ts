@@ -13,4 +13,7 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  optimizeDeps: {
+    exclude: ["@node-rs/argon2-darwin-arm64", "@node-rs/bcrypt-darwin-arm64"],
+  },
 });

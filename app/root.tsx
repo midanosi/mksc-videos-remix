@@ -6,6 +6,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import globalStyles from "~/styles/global.css?url";
+import { AdminContextProvider } from "./context/AdminContext";
 
 export function links() {
   return [
@@ -39,5 +40,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <AdminContextProvider>
+      <Outlet />
+    </AdminContextProvider>
+  );
 }

@@ -1,12 +1,13 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData, useNavigate } from "@remix-run/react";
-import { useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import invariant from "tiny-invariant";
 import { courses } from "~/lib/courses";
 import { formatTime } from "~/lib/formatTime";
 
 import { db } from "~/lib/db.server";
+import { AdminContext } from "~/context/AdminContext";
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   invariant(params.vidId, "Missing vidId param");
@@ -46,6 +47,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
 export default function EditVideo() {
   const { mkscvid } = useLoaderData<typeof loader>();
+  const { isAdmin } = useContext(AdminContext);
   const [cid, setCid] = useState(mkscvid.cid);
   const navigate = useNavigate();
   const [formattedTime, setFormattedTime] = useState(
@@ -53,6 +55,12 @@ export default function EditVideo() {
   );
   const [inputLink, setInputLink] = useState(mkscvid.link);
   const youtubeId = useMemo(() => inputLink.split("v=")[1], [inputLink]);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/");
+    }
+  });
 
   return (
     <div className="flex flex-wrap">

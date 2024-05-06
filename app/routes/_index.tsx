@@ -1,4 +1,6 @@
 import { Link } from "@remix-run/react";
+import { useContext } from "react";
+import { AdminContext } from "~/context/AdminContext";
 import { Mode, getModeColor } from "~/lib/getModeColor";
 
 type ModeObj = {
@@ -34,10 +36,27 @@ const modes: Array<ModeObj> = [
 ];
 
 function Index() {
-  const isAdmin = true;
+  const { isAdmin, setIsAdmin } = useContext(AdminContext);
   return (
     <main className="relative min-h-screen m-8 bg-white">
-      <h1 className="text-4xl">MKSC Videos</h1>
+      <div className="flex justify-between w-full">
+        <h1 className="text-4xl">MKSC Videos</h1>
+        <h3 className="font-bold">
+          {isAdmin ? (
+            <>
+              <p>Admin mode on</p>
+              <button
+                className="border border-gray-700"
+                onClick={() => setIsAdmin(false)}
+              >
+                Turn off admin mode
+              </button>
+            </>
+          ) : (
+            <Link to="/admin">Turn on Admin mode?</Link>
+          )}
+        </h3>
+      </div>
       <div className="px-4 py-2 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="flex flex-col justify-center gap-8 mt-6">
           {modes.map((mode) => {
