@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { Mode, getModeColor } from "~/lib/getModeColor";
+
 type ModeObj = {
   id: Mode;
   title: string;
@@ -33,6 +34,7 @@ const modes: Array<ModeObj> = [
 ];
 
 function Index() {
+  const isAdmin = true;
   return (
     <main className="relative min-h-screen m-8 bg-white">
       <h1 className="text-4xl">MKSC Videos</h1>
@@ -61,6 +63,10 @@ function Index() {
           })}
         </div>
       </div>
+
+      <div className="h-2" />
+
+      {isAdmin ? <Link to="/videos/new">Add new video</Link> : null}
     </main>
   );
 }
