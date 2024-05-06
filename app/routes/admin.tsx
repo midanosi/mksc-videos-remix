@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, json } from "@remix-run/node";
-import { Form, Link, useActionData, useNavigate } from "@remix-run/react";
+import { Form, Link, useActionData } from "@remix-run/react";
 import { sha512 } from "oslo/crypto";
 import { encodeHex } from "oslo/encoding";
 import { useContext, useEffect } from "react";
@@ -16,8 +16,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const data = new TextEncoder().encode(password);
   const hash = await sha512(data);
   const hexHash = encodeHex(hash);
-  console.log(`hash`, hash);
-  console.log(`hexHash`, hexHash);
 
   if (hexHash === process.env.PASSWORD_HASH) {
     return json({ isAdmin: true });

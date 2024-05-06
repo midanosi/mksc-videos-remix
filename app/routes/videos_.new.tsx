@@ -1,16 +1,17 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { Form, useNavigate } from "@remix-run/react";
-import { useMemo, useState } from "react";
+import { Form, useFetcher, useNavigate } from "@remix-run/react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { courses } from "~/lib/courses";
 import { formatTime } from "~/lib/formatTime";
 
 import { db } from "~/lib/db.server";
+import { AdminContext } from "~/context/AdminContext";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const updates = Object.fromEntries(formData);
-  const { link, time, mode, cid, player } = updates;
+  const { link, time, mode, cid, player, uploaded_at } = updates;
   if (time === "0") {
     throw new Error("Time cannot be 0");
   }
@@ -29,6 +30,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       cid: Number(cid),
       player: String(player),
       is_alive: true,
+      uploaded_at: String(uploaded_at),
     },
   });
   const modes = ["nonzzmt", "zzmt", "sc", "nolapskips"];
@@ -37,11 +39,38 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function CreateNew() {
+  const { isAdmin } = useContext(AdminContext);
+
   const [cid, setCid] = useState(0);
   const navigate = useNavigate();
   const [formattedTime, setFormattedTime] = useState(formatTime(0));
+
+  const publishedAtRef = useRef<HTMLInputElement>(null);
   const [inputLink, setInputLink] = useState("");
-  const youtubeId = useMemo(() => inputLink.split("v=")[1], [inputLink]);
+  const youtubeId = useMemo(
+    () => (inputLink.includes("v=") ? inputLink.split("v=")[1] : inputLink),
+    [inputLink]
+  );
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    if (youtubeId) {
+      fetcher.load(`/query_youtube?yturl=${youtubeId}`);
+    }
+  }, [youtubeId]);
+
+  useEffect(() => {
+    if (fetcher.data?.youtubeMetadata && publishedAtRef.current) {
+      publishedAtRef.current.value =
+        fetcher.data?.youtubeMetadata?.snippet.publishedAt;
+    }
+  }, [fetcher]);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/");
+    }
+  });
 
   return (
     <div className="flex flex-wrap">
@@ -170,6 +199,22 @@ export default function CreateNew() {
           <input type="text" aria-label="player" name="player" />
         </p>
 
+        <QueriedFromYoutube youtubeMetadata={fetcher.data?.youtubeMetadata} />
+
+        <p>
+          <span>Published At</span>
+          <br />
+          <input
+            ref={publishedAtRef}
+            type="text"
+            aria-label="uploaded_at"
+            name="uploaded_at"
+            className="pointer-events-none"
+            disabled
+            aria-disabled="true"
+          />
+        </p>
+
         <div className="flex gap-2">
           <button type="submit">Create</button>
           <button type="button" onClick={() => navigate(-1)}>
@@ -177,15 +222,41 @@ export default function CreateNew() {
           </button>
         </div>
       </Form>
-      <LinkPreview link={inputLink} />
     </div>
   );
 }
-function LinkPreview({ link }: { link: string }) {
+function QueriedFromYoutube({
+  youtubeMetadata,
+}: {
+  youtubeMetadata: {
+    id: string;
+    snippet: {
+      publishedAt: string;
+      title: string;
+      channelTitle: string;
+      description: string;
+      thumbnails: { high: { url: string } };
+    };
+  };
+}) {
+  if (!youtubeMetadata) return null;
   return (
     <div className="m-4">
-      <p>Link Preview</p>
-      {link}
+      <p>Queried from youtube (enter a valid youtube URL)</p>
+      {youtubeMetadata.snippet ? (
+        <>
+          <img
+            src={youtubeMetadata.snippet.thumbnails.high.url}
+            alt="yt thumbnail"
+          />
+          <ul>
+            <li>Title: {youtubeMetadata.snippet.title}</li>
+            <li>Published At: {youtubeMetadata.snippet.publishedAt}</li>
+            <li>Channel Title: {youtubeMetadata.snippet.channelTitle}</li>
+            <li>Description: {youtubeMetadata.snippet.description}</li>
+          </ul>
+        </>
+      ) : null}
     </div>
   );
 }

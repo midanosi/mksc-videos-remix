@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useLoaderData, useNavigate } from "@remix-run/react";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { Form, useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import invariant from "tiny-invariant";
 import { courses } from "~/lib/courses";
 import { formatTime } from "~/lib/formatTime";
@@ -25,7 +25,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   invariant(params.vidId, "Missing vidId param");
   const formData = await request.formData();
   const updates = Object.fromEntries(formData);
-  const { link, time, mode, cid, player } = updates;
+  const { link, time, mode, cid, player, uploaded_at } = updates;
   const youtubeId = String(link).split("v=")[1];
 
   const updatedvid = await db.mkscvids.update({
@@ -36,6 +36,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
       time: Number(time),
       cid: Number(cid),
       player: String(player),
+      uploaded_at: String(uploaded_at),
     },
   });
   const modes = ["nonzzmt", "zzmt", "sc", "nolapskips"];
@@ -53,8 +54,26 @@ export default function EditVideo() {
   const [formattedTime, setFormattedTime] = useState(
     formatTime(Number(mkscvid.time))
   );
+  const publishedAtRef = useRef<HTMLInputElement>(null);
   const [inputLink, setInputLink] = useState(mkscvid.link);
-  const youtubeId = useMemo(() => inputLink.split("v=")[1], [inputLink]);
+  const youtubeId = useMemo(
+    () => (inputLink.includes("v=") ? inputLink.split("v=")[1] : inputLink),
+    [inputLink]
+  );
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    if (youtubeId) {
+      fetcher.load(`/query_youtube?yturl=${youtubeId}`);
+    }
+  }, [youtubeId]);
+
+  useEffect(() => {
+    if (fetcher.data?.youtubeMetadata && publishedAtRef.current) {
+      publishedAtRef.current.value =
+        fetcher.data?.youtubeMetadata?.snippet.publishedAt;
+    }
+  }, [fetcher]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -210,6 +229,23 @@ export default function EditVideo() {
           />
         </p>
 
+        <QueriedFromYoutube youtubeMetadata={fetcher.data?.youtubeMetadata} />
+
+        <p>
+          <span>Published At</span>
+          <br />
+          <input
+            ref={publishedAtRef}
+            type="text"
+            aria-label="uploaded_at"
+            name="uploaded_at"
+            className="pointer-events-none"
+            disabled
+            aria-disabled="true"
+            defaultValue={mkscvid.player ?? ""}
+          />
+        </p>
+
         <div className="flex gap-2">
           <button type="submit">Save</button>
           <button type="button" onClick={() => navigate(-1)}>
@@ -233,15 +269,50 @@ export default function EditVideo() {
           </Form>
         </div>
       </Form>
-      <LinkPreview link={inputLink} />
     </div>
   );
 }
-function LinkPreview({ link }: { link: string }) {
+function QueriedFromYoutube({
+  youtubeMetadata,
+}: {
+  youtubeMetadata: {
+    id: string;
+    snippet: {
+      publishedAt: string;
+      title: string;
+      channelTitle: string;
+      description: string;
+      thumbnails: { high: { url: string } };
+    };
+  };
+}) {
+  if (!youtubeMetadata) return null;
   return (
     <div className="m-4">
-      <p>Link Preview</p>
-      {link}
+      <p>Queried from youtube (enter a valid youtube URL)</p>
+      {youtubeMetadata.snippet ? (
+        <>
+          <img
+            src={youtubeMetadata.snippet.thumbnails.high.url}
+            alt="yt thumbnail"
+          />
+          <ul>
+            <li>Title: {youtubeMetadata.snippet.title}</li>
+            <li>Published At: {youtubeMetadata.snippet.publishedAt}</li>
+            <li>Channel Title: {youtubeMetadata.snippet.channelTitle}</li>
+            <li>Description: {youtubeMetadata.snippet.description}</li>
+          </ul>
+        </>
+      ) : null}
     </div>
   );
 }
+
+//   id: "tWiyW1K1NPE",
+// snippet: { publishedAt:
+//   "2009-04-22T03:25:01Z",
+//   channelId: "UCRmBWnLpvClxxoZqSOszB7w",
+//   title: `Peach Circuit 3lap - 0'47"71`,
+// channelTitle: "karterfreak"
+// description: "Driver: Matt Ellis\n\nTo compete in Mario Kart Super Circuit, go to www.mariokart64.com.mksc"
+// thumbnails: { high: {url: string} }
