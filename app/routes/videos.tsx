@@ -227,7 +227,7 @@ export default function Videos() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white">
                       {mkscvid.uploaded_at
-                        ? format(new Date(mkscvid.uploaded_at), "do MMM yyyy")
+                        ? format(new Date(mkscvid.uploaded_at), "yyyy MMM do")
                         : ""}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white underline">
