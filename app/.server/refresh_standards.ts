@@ -3,6 +3,20 @@ import path from "path";
 import { promises as fs } from "fs";
 import { standardTitles } from "~/lib/standardTitles";
 
+export class FileUtils {
+  /**
+   * Retrieves the public file path for a given original path.
+   * We need to do this for Vercel, otherwise it won't find the file.
+   *
+   * @param {string} originalPath - The original path of the file.
+   * @return {string} The resolved public file path.
+   */
+  public static getPublicFilePath(originalPath: string): string {
+    originalPath = originalPath.replace("./public/", "");
+    return path.resolve("./public", originalPath);
+  }
+}
+
 async function openStandardCSV(mode: string) {
   const publicDirectory = path.join(process.cwd(), "public");
   const filename =
@@ -13,7 +27,10 @@ async function openStandardCSV(mode: string) {
       : "standards_sc.csv";
   const standardsFile = path.join(publicDirectory, filename);
 
-  const csv = await fs.readFile(standardsFile, "utf8");
+  const csv = await fs.readFile(
+    FileUtils.getPublicFilePath(standardsFile),
+    "utf8"
+  );
   return csv;
 }
 
