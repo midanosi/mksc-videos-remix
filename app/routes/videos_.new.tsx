@@ -65,7 +65,7 @@ export default function CreateNew() {
   }, [youtubeId]);
 
   useEffect(() => {
-    if (!isAdmin && false) {
+    if (!isAdmin) {
       navigate("/");
     }
   });
