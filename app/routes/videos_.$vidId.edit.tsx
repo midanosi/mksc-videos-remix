@@ -94,7 +94,7 @@ export default function EditVideo() {
     <div className="flex flex-wrap">
       <Form
         key={mkscvid.id}
-        id="mkscvid-form"
+        id="mkscvids-form"
         method="post"
         className="my-10 mx-8 flex flex-col gap-10"
       >

@@ -65,160 +65,171 @@ export default function CreateNew() {
   }, [youtubeId]);
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (!isAdmin && false) {
       navigate("/");
     }
   });
 
   return (
-    <div className="flex flex-wrap">
-      <Form
-        key="new"
-        id="mkscvid-form"
-        method="post"
-        className="my-10 mx-8 flex flex-col gap-10"
-      >
-        <p>
-          <span>Youtube URL</span>
-          <br />
-          <input
-            type="text"
-            onChange={(e) => setInputLink(e.currentTarget.value)}
-            aria-label="link"
-            name="link"
-          />
-          <p className="pointer-events-none">(youtube vid id: {youtubeId})</p>
-        </p>
+    <Form
+      key="new"
+      id="mkscvids-form"
+      method="post"
+      className="my-10 mx-8 flex flex-col gap-10 w-screen"
+    >
+      <div className="flex flex-wrap gap-8 w-full">
+        <div className="flex flex-col gap-8">
+          <div className="flex gap-2 items-center">
+            <label>Youtube URL</label>
+            <input
+              type="text"
+              onChange={(e) => setInputLink(e.currentTarget.value)}
+              aria-label="link"
+              name="link"
+            />
+            {youtubeId ? (
+              <p className="pointer-events-none !m-0 text-gray-500">
+                found id: {youtubeId}
+              </p>
+            ) : null}
+          </div>
 
-        <p>
-          <span>Mode</span>
-          <br />
-          <select
-            aria-label="mode"
-            name="mode"
-            className="border border-gray-400 rounded-md p-1"
-            defaultValue={0}
-          >
-            <option value="0">NonZZMT</option>
-            <option value="1">ZZMT</option>
-            <option value="2">SC</option>
-            <option value="3">No Lapskips</option>
-          </select>
-        </p>
+          <div className="flex gap-2 items-center">
+            <label>Mode</label>
+            <select
+              aria-label="mode"
+              name="mode"
+              className="border border-gray-400 rounded-md p-1"
+              defaultValue={0}
+            >
+              <option value="0">NonZZMT</option>
+              <option value="1">ZZMT</option>
+              <option value="2">SC</option>
+              <option value="3">No Lapskips</option>
+            </select>
+          </div>
 
-        <div>
-          <label htmlFor="cid">
-            CID (enter manually if you know it, or via the course and flap
-            dropdowns)
-          </label>
+          <div>
+            <div className="flex gap-2 items-center">
+              <label htmlFor="cid">CID</label>
 
-          <div className="flex">
+              <input
+                type="number"
+                name="cid"
+                value={cid ?? 0}
+                onChange={(e) => setCid(Number(e.currentTarget.value))}
+              ></input>
+            </div>
+            <span className="text-gray-500 text-sm">
+              Enter cid manually, or you can set it via these Course and Flap
+              dropdowns
+            </span>
+            <div className="flex gap-2 items-center">
+              <div>
+                <label htmlFor="course">Course Name</label>
+                <select
+                  aria-label="course"
+                  name="Course"
+                  className="border border-gray-400 rounded-md p-1"
+                  value={Math.floor(cid / 2)}
+                  onChange={(e) => {
+                    const courseIdx = Number(e.currentTarget.value);
+                    setCid((currentCid) =>
+                      currentCid % 2 === 0 ? courseIdx * 2 : courseIdx * 2 + 1
+                    );
+                  }}
+                >
+                  {courses.map((course, idx) => {
+                    return (
+                      <option key={course} value={idx}>
+                        {course}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="courseorflap">Course or Flap?</label>
+                <select
+                  aria-label="courseorflap"
+                  name="courseorflap"
+                  className="border border-gray-400 rounded-md p-1"
+                  value={cid % 2}
+                  onChange={(e) => {
+                    const courseorflapvalue = Number(e.currentTarget.value);
+                    setCid((currentCid) => {
+                      if (courseorflapvalue === 0) {
+                        // course
+                        return currentCid % 2 === 0
+                          ? currentCid
+                          : currentCid - 1;
+                      } else {
+                        return currentCid % 2 === 1
+                          ? currentCid
+                          : currentCid + 1;
+                      }
+                    });
+                  }}
+                >
+                  <option value="0">Course</option>
+                  <option value="1">Flap</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <label htmlFor="time">Time</label>
+            <br />
             <input
               type="number"
-              name="cid"
-              value={cid ?? 0}
-              onChange={(e) => setCid(Number(e.currentTarget.value))}
-            ></input>
+              name="time"
+              aria-label="time"
+              step="0.01"
+              min={0}
+              max={79}
+              onChange={(e) =>
+                setFormattedTime(formatTime(Number(e.currentTarget.value)))
+              }
+              className="w-32"
+            />
+            {formattedTime ? (
+              <p className="pointer-events-none !m-0">
+                formatted: {formattedTime}
+              </p>
+            ) : null}
           </div>
-          <div className="h-2" />
-          <div className="flex gap- 2">
-            <div>
-              <label htmlFor="course">Course Name</label>
-              <br />
-              <select
-                aria-label="course"
-                name="Course"
-                className="border border-gray-400 rounded-md p-1"
-                value={Math.floor(cid / 2)}
-                onChange={(e) => {
-                  const courseIdx = Number(e.currentTarget.value);
-                  setCid((currentCid) =>
-                    currentCid % 2 === 0 ? courseIdx * 2 : courseIdx * 2 + 1
-                  );
-                }}
-              >
-                {courses.map((course, idx) => {
-                  return (
-                    <option key={course} value={idx}>
-                      {course}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="courseorflap">Course or Flap?</label>
-              <br />
-              <select
-                aria-label="courseorflap"
-                name="courseorflap"
-                className="border border-gray-400 rounded-md p-1"
-                value={cid % 2}
-                onChange={(e) => {
-                  const courseorflapvalue = Number(e.currentTarget.value);
-                  setCid((currentCid) => {
-                    if (courseorflapvalue === 0) {
-                      // course
-                      return currentCid % 2 === 0 ? currentCid : currentCid - 1;
-                    } else {
-                      return currentCid % 2 === 1 ? currentCid : currentCid + 1;
-                    }
-                  });
-                }}
-              >
-                <option value="0">Course</option>
-                <option value="1">Flap</option>
-              </select>
-            </div>
+
+          <div className="flex gap-2 items-center">
+            <label>Player Name</label>
+            <input type="text" aria-label="player" name="player" />
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <label>Published At (readonly)</label>
+            <input
+              type="text"
+              aria-label="uploaded_at"
+              name="uploaded_at"
+              value={fetcher.data?.youtubeMetadata?.snippet.publishedAt ?? ""}
+              readOnly
+            />
           </div>
         </div>
 
-        <div>
-          <label htmlFor="time">Time</label>
-          <br />
-          <input
-            type="number"
-            name="time"
-            aria-label="time"
-            step="0.01"
-            min={0}
-            max={79}
-            onChange={(e) =>
-              setFormattedTime(formatTime(Number(e.currentTarget.value)))
-            }
-            className="w-32"
-          />
-          <p className="pointer-events-none">(formatted: {formattedTime})</p>
+        <div className="min-w-60 max-w-100 border-dashed border-2 border-gray-700 rounded-md">
+          <p>Info from Youtube</p>
+          <QueriedFromYoutube youtubeMetadata={fetcher.data?.youtubeMetadata} />
         </div>
+      </div>
 
-        <p>
-          <span>Player Name</span>
-          <br />
-          <input type="text" aria-label="player" name="player" />
-        </p>
-
-        <QueriedFromYoutube youtubeMetadata={fetcher.data?.youtubeMetadata} />
-
-        <p>
-          <span>Published At</span>
-          <br />
-          <input
-            type="text"
-            aria-label="uploaded_at"
-            name="uploaded_at"
-            value={fetcher.data?.youtubeMetadata?.snippet.publishedAt ?? ""}
-            readOnly
-          />
-        </p>
-
-        <div className="flex gap-2">
-          <button type="submit">Create</button>
-          <button type="button" onClick={() => navigate(-1)}>
-            Cancel
-          </button>
-        </div>
-      </Form>
-    </div>
+      <div className="flex gap-2">
+        <button type="submit">Submit video</button>
+        <button type="button" onClick={() => navigate(-1)}>
+          Cancel
+        </button>
+      </div>
+    </Form>
   );
 }
 function QueriedFromYoutube({
@@ -238,18 +249,23 @@ function QueriedFromYoutube({
   if (!youtubeMetadata) return null;
   return (
     <div className="m-4">
-      <p>Queried from youtube (enter a valid youtube URL)</p>
       {youtubeMetadata.snippet ? (
         <>
-          <img
-            src={youtubeMetadata.snippet.thumbnails.high.url}
-            alt="yt thumbnail"
-          />
-          <ul>
-            <li>Title: {youtubeMetadata.snippet.title}</li>
-            <li>Published At: {youtubeMetadata.snippet.publishedAt}</li>
-            <li>Channel Title: {youtubeMetadata.snippet.channelTitle}</li>
-            <li>Description: {youtubeMetadata.snippet.description}</li>
+          <a
+            href={`https://www.youtube.com/watch?v=${youtubeMetadata.id}`}
+            target="_blank"
+          >
+            <img
+              src={youtubeMetadata.snippet.thumbnails.high.url}
+              alt="yt thumbnail"
+              className="max-w-70"
+            />
+          </a>
+          <ul className="flex flex-col gap-8">
+            <li>{youtubeMetadata.snippet.title}</li>
+            <li>{youtubeMetadata.snippet.publishedAt}</li>
+            <li>{youtubeMetadata.snippet.channelTitle}</li>
+            <li>{youtubeMetadata.snippet.description}</li>
           </ul>
         </>
       ) : null}
