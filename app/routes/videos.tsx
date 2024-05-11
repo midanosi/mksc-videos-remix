@@ -242,6 +242,7 @@ export default function Videos() {
                         <a
                           href={`https://youtu.be/${mkscvid.link}`}
                           className="hover:text-blue-600"
+                          target="_blank"
                         >
                           {formatTime(Number(mkscvid.time))}
                         </a>
@@ -261,7 +262,10 @@ export default function Videos() {
                         : ""}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white underline">
-                      <a href={`https://youtu.be/${mkscvid.link}`}>
+                      <a
+                        href={`https://youtu.be/${mkscvid.link}`}
+                        target="_blank"
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 28.57  20"
