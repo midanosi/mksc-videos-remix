@@ -35,13 +35,14 @@ async function openStandardCSV(mode: string) {
 }
 
 const modesWithStandards = ["zzmt", "sc", "nonzzmt"];
-const standardFiles = {
-  nonzzmt: await openStandardCSV("nonzzmt"),
-  zzmt: await openStandardCSV("zzmt"),
-  sc: await openStandardCSV("sc"),
-};
 
 async function refresh_standards() {
+  const standardFiles = {
+    nonzzmt: await openStandardCSV("nonzzmt"),
+    zzmt: await openStandardCSV("zzmt"),
+    sc: await openStandardCSV("sc"),
+  };
+
   for (const mode of modesWithStandards) {
     const modeNumber = mode === "nonzzmt" ? 0 : mode === "zzmt" ? 1 : 2;
     const vids = await db.mkscvids.findMany({
