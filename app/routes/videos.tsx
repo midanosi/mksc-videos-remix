@@ -156,6 +156,27 @@ export default function Videos() {
                 : `Display dead links (${deadLinksCount})`}
             </button>
           ) : null}
+
+          <div className="border border-1 border-gray-700 rounded-md p-2">
+            <a
+              href={`https://mariokart64.com/mksc/course${
+                mode === "sc" || mode === "nolapskips" ? "p" : "n"
+              }.php?cid=${cid}`}
+              target="_blank"
+            >
+              PP rankings ↗
+            </a>
+          </div>
+          <div className="border border-1 border-gray-700 rounded-md p-2">
+            <a
+              href={`https://mkwrs.com/mksc/display.php?track=${getCourseName(
+                cid
+              ).replace(" ", "%20")}${cid % 2 === 0 ? "" : "&f=1"}`}
+              target="_blank"
+            >
+              mkwrs ↗
+            </a>
+          </div>
         </div>
         <div className="h-full border-r shadow-md w-80 bg-gray-50 sm:rounded-lg">
           <table className="min-w-full">
@@ -172,6 +193,12 @@ export default function Videos() {
                   className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400"
                 >
                   Player
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400"
+                >
+                  Standard
                 </th>
                 <th
                   scope="col"
