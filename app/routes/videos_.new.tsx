@@ -58,17 +58,35 @@ export default function CreateNew() {
   }, [inputLink]);
   const fetcher = useFetcher();
 
+  // fetch youtube metadata when Link input changes
   useEffect(() => {
     if (youtubeId) {
       fetcher.load(`/query_youtube?yturl=${youtubeId}`);
     }
   }, [youtubeId]);
 
+  // redirect if not admin
   useEffect(() => {
-    if (!isAdmin) {
+    if (!isAdmin && false) {
       navigate("/");
     }
   });
+
+  // if fetch youtube metadata, try scrape fields, and update them
+  // useEffect(() => {
+  //   const metadata = fetcher.data?.youtubeMetadata ?? undefined;
+  //   const title = metadata?.snippet?.title;
+  //   const time = title?.match(/(\d{1,2}"\d{2})/)?.[0] ?? undefined;
+  //   console.log(`title`, title);
+  //   console.log(`time`, time);
+  //   if (time) {
+  //     const timeInput =
+  //       document.querySelector<HTMLInputElement>('input[name="time"]');
+  //     if (timeInput) {
+  //       timeInput.value = time.replace('"', ".");
+  //     }
+  //   }
+  // }, [fetcher.data?.youtubeMetadata]);
 
   return (
     <Form
@@ -193,7 +211,7 @@ export default function CreateNew() {
               }
               className="w-32"
             />
-            {formattedTime ? (
+            {formattedTime !== '00"00' ? (
               <p className="pointer-events-none !m-0">
                 formatted: {formattedTime}
               </p>
