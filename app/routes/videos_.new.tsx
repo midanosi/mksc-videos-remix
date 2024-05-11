@@ -18,9 +18,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (player === "") {
     throw new Error("Must provide player name");
   }
-  const youtubeId = String(link).split("v=")[1];
-  if (youtubeId === "") {
-    throw new Error("Youtube ID not found in provided URL");
+  const youtubeRegex = String(link).match(
+    /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(?:-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|live\/|v\/)?)(?<videoId>[\w\-]+)(\S+)?$/
+  );
+  const youtubeId = youtubeRegex?.groups?.videoId ?? undefined;
+  if (youtubeId === undefined) {
+    throw new Error("invalid youtube url, can't find video id");
   }
   const newVid = await db.mkscvids.create({
     data: {
@@ -46,10 +49,13 @@ export default function CreateNew() {
   const [formattedTime, setFormattedTime] = useState(formatTime(0));
 
   const [inputLink, setInputLink] = useState("");
-  const youtubeId = useMemo(
-    () => (inputLink.includes("v=") ? inputLink.split("v=")[1] : inputLink),
-    [inputLink]
-  );
+  const youtubeId = useMemo(() => {
+    const youtubeRegex = String(inputLink).match(
+      /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(?:-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|live\/|v\/)?)(?<videoId>[\w\-]+)(\S+)?$/
+    );
+    const youtubeId = youtubeRegex?.groups?.videoId ?? undefined;
+    return youtubeId;
+  }, [inputLink]);
   const fetcher = useFetcher();
 
   useEffect(() => {

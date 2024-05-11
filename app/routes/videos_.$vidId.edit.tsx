@@ -26,7 +26,13 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const updates = Object.fromEntries(formData);
   const { link, time, mode, cid, player, uploaded_at } = updates;
-  const youtubeId = String(link).split("v=")[1];
+  const youtubeRegex = String(link).match(
+    /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(?:-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|live\/|v\/)?)(?<videoId>[\w\-]+)(\S+)?$/
+  );
+  const youtubeId = youtubeRegex?.groups?.videoId ?? undefined;
+  if (youtubeId === undefined) {
+    throw new Error("invalid youtube url, can't find video id");
+  }
 
   const updatedvid = await db.mkscvids.update({
     where: { id: Number(params.vidId) },
@@ -56,10 +62,13 @@ export default function EditVideo() {
   );
   const publishedAtRef = useRef<HTMLInputElement>(null);
   const [inputLink, setInputLink] = useState(mkscvid.link);
-  const youtubeId = useMemo(
-    () => (inputLink.includes("v=") ? inputLink.split("v=")[1] : inputLink),
-    [inputLink]
-  );
+  const youtubeId = useMemo(() => {
+    const youtubeRegex = String(inputLink).match(
+      /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(?:-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|live\/|v\/)?)(?<videoId>[\w\-]+)(\S+)?$/
+    );
+    const youtubeId = youtubeRegex?.groups?.videoId ?? undefined;
+    return youtubeId;
+  }, [inputLink]);
   const fetcher = useFetcher();
 
   useEffect(() => {
