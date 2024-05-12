@@ -67,7 +67,7 @@ export default function CreateNew() {
 
   // redirect if not admin
   useEffect(() => {
-    if (!isAdmin && false) {
+    if (!isAdmin) {
       navigate("/");
     }
   });
