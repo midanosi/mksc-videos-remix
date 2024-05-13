@@ -1,15 +1,16 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { courses, coursesAcronyms } from "~/lib/courses";
 import { formatTime } from "~/lib/formatTime";
 
 import { db } from "~/lib/db.server";
-import { AdminContext } from "~/context/AdminContext";
 import { Mode } from "~/lib/getModeColor";
 import { openStandardCSV } from "~/lib/openStandardsCSV";
 import Spacer from "~/components/Spacer";
+import { getAuth } from "@clerk/remix/ssr.server";
+import { createClerkClient } from "@clerk/remix/api.server";
 
 const modes = ["nonzzmt", "zzmt", "sc", "nolapskips"];
 
@@ -45,7 +46,33 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return redirect(`/videos?cid=${newVid.cid}&mode=${modes[newVid.mode]}`);
 };
 
-export const loader = async () => {
+export const loader = async (args: LoaderFunctionArgs) => {
+  const { userId } = await getAuth(args);
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+  const user = await createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY,
+  }).users.getUser(userId);
+  const emailAddress = user.emailAddresses[0]?.emailAddress;
+  const discordUserId = user.externalAccounts[0]?.externalId;
+
+  const isAdmin = await db.admins.findFirst({
+    where: {
+      OR: [
+        {
+          email_address: emailAddress,
+        },
+        {
+          discord_user_id: discordUserId,
+        },
+      ],
+    },
+  });
+  if (!isAdmin) {
+    return redirect("/");
+  }
+
   const standardFiles = {
     nonzzmt: await openStandardCSV("nonzzmt"),
     zzmt: await openStandardCSV("zzmt"),
@@ -55,7 +82,6 @@ export const loader = async () => {
 };
 
 export default function CreateNew() {
-  const { isAdmin } = useContext(AdminContext);
   const { standardFiles } = useLoaderData<typeof loader>();
 
   const [mode, setMode] = useState<number | undefined>(undefined);
@@ -79,13 +105,6 @@ export default function CreateNew() {
       fetcher.load(`/query_youtube?yturl=${youtubeId}`);
     }
   }, [youtubeId]);
-
-  // redirect if not admin
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate("/");
-    }
-  });
 
   // if fetch youtube metadata, try scrape fields, and update them
   useEffect(() => {

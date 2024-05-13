@@ -10,6 +10,7 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns/format";
 import { useContext, useMemo, useState } from "react";
 import { AdminContext } from "~/context/AdminContext";
+import { ShowIfAdmin } from "~/components/ShowIfAdmin";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -84,12 +85,7 @@ export default function Videos() {
     <div className="flex flex-col h-full min-h-screen">
       <header className="flex items-center justify-between p-4 bg-slate-800">
         <h3 className="font-bold text-white">
-          <Link to="/"> Home</Link>
-        </h3>
-        <h3 className="font-bold text-white">
-          <Link to="/admin">
-            {isAdmin ? "Admin mode on" : "Turn on Admin mode?"}
-          </Link>
+          <Link to="/">Home</Link>
         </h3>
       </header>
 
@@ -220,11 +216,11 @@ export default function Videos() {
                     Dead link?
                   </th>
                 ) : null}
-                {isAdmin ? (
+                <ShowIfAdmin>
                   <th scope="col" className="relative px-6 py-3">
                     <span className="sr-only">Edit</span>
                   </th>
-                ) : null}
+                </ShowIfAdmin>
               </tr>
             </thead>
             <tbody>
@@ -296,11 +292,12 @@ export default function Videos() {
                         {mkscvid.is_alive ? "" : "💀"}
                       </td>
                     ) : null}
-                    {isAdmin ? (
+
+                    <ShowIfAdmin>
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-white hover:underline hover:cursor-pointer">
                         <Link to={`${mkscvid.id}/edit`}>{`✏️ Edit`}</Link>
                       </td>
-                    ) : null}
+                    </ShowIfAdmin>
                   </tr>
                 );
               })}

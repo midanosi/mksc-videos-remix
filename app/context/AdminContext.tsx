@@ -1,14 +1,24 @@
-import React, { useState } from "react";
+import { useFetcher } from "@remix-run/react";
+import React, { useEffect, useMemo, useState } from "react";
 
 const AdminContext = React.createContext<{
   isAdmin: boolean;
-  setIsAdmin: React.Dispatch<React.SetStateAction<boolean>>;
-}>({ isAdmin: false, setIsAdmin: () => {} });
+}>({ isAdmin: false });
 
 function AdminContextProvider({ children }: { children: React.ReactNode }) {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const fetcher = useFetcher();
+  useEffect(() => {
+    fetcher.load("/is_user_admin");
+  }, []);
+
+  const isAdmin = useMemo(
+    () => fetcher.data?.isAdmin ?? false,
+    [fetcher.data?.isAdmin]
+  );
+  console.log(`isAdmin`, isAdmin);
+
   return (
-    <AdminContext.Provider value={{ isAdmin, setIsAdmin }}>
+    <AdminContext.Provider value={{ isAdmin }}>
       {children}
     </AdminContext.Provider>
   );

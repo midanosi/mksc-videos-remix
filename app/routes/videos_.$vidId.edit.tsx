@@ -7,13 +7,39 @@ import { courses } from "~/lib/courses";
 import { formatTime } from "~/lib/formatTime";
 
 import { db } from "~/lib/db.server";
-import { AdminContext } from "~/context/AdminContext";
+import { getAuth } from "@clerk/remix/ssr.server";
+import { createClerkClient } from "@clerk/remix/api.server";
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  invariant(params.vidId, "Missing vidId param");
+export const loader = async (args: LoaderFunctionArgs) => {
+  const { userId } = await getAuth(args);
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+  const user = await createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY,
+  }).users.getUser(userId);
+  const emailAddress = user.emailAddresses[0]?.emailAddress;
+  const discordUserId = user.externalAccounts[0]?.externalId;
+
+  const isAdmin = db.admins.findFirst({
+    where: {
+      OR: [
+        {
+          email_address: emailAddress,
+        },
+        {
+          discord_user_id: discordUserId,
+        },
+      ],
+    },
+  });
+  if (!isAdmin) {
+    return redirect("/");
+  }
+  invariant(args.params.vidId, "Missing vidId param");
 
   const mkscvid = await db.mkscvids.findFirst({
-    where: { id: Number(params.vidId) },
+    where: { id: Number(args.params.vidId) },
   });
   if (!mkscvid) {
     throw new Response("Not Found", { status: 404 });
@@ -54,7 +80,6 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
 export default function EditVideo() {
   const { mkscvid } = useLoaderData<typeof loader>();
-  const { isAdmin } = useContext(AdminContext);
   const [cid, setCid] = useState(mkscvid.cid);
   const navigate = useNavigate();
   const [formattedTime, setFormattedTime] = useState(
@@ -83,12 +108,6 @@ export default function EditVideo() {
         fetcher.data?.youtubeMetadata?.snippet.publishedAt;
     }
   }, [fetcher]);
-
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate("/");
-    }
-  });
 
   return (
     <div className="flex flex-wrap">

@@ -5,8 +5,24 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+
+import type { MetaFunction, LoaderFunction } from "@remix-run/node";
 import globalStyles from "~/styles/global.css?url";
 import { AdminContextProvider } from "./context/AdminContext";
+
+// Import rootAuthLoader
+import { rootAuthLoader } from "@clerk/remix/ssr.server";
+// Import ClerkApp
+import { ClerkApp } from "@clerk/remix";
+
+export const meta: MetaFunction = () => [
+  {
+    charset: "utf-8",
+    title: "MKSC Videos",
+    viewport: "width=device-width,initial-scale=1",
+  },
+];
+export const loader: LoaderFunction = (args) => rootAuthLoader(args);
 
 export function links() {
   return [
@@ -39,10 +55,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <AdminContextProvider>
       <Outlet />
     </AdminContextProvider>
   );
 }
+
+export default ClerkApp(App);

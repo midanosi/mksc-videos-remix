@@ -164,3 +164,10 @@ model standards_non_zzmt {
   beg_d   Decimal @db.Decimal(10, 2)
   beg_e   Decimal @db.Decimal(10, 2)
 }
+
+model admins {
+  id              Int     @id @default(autoincrement())
+  username        String
+  email_address   String?
+  discord_user_id String?
+}
