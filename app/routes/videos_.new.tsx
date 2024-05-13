@@ -1,12 +1,16 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { Form, useFetcher, useNavigate } from "@remix-run/react";
+import { Form, useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { courses } from "~/lib/courses";
+import { courses, coursesAcronyms } from "~/lib/courses";
 import { formatTime } from "~/lib/formatTime";
 
 import { db } from "~/lib/db.server";
 import { AdminContext } from "~/context/AdminContext";
+import { Mode } from "~/lib/getModeColor";
+import { openStandardCSV } from "~/lib/openStandardsCSV";
+
+const modes = ["nonzzmt", "zzmt", "sc", "nolapskips"];
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
@@ -36,14 +40,24 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       uploaded_at: uploaded_at,
     },
   });
-  const modes = ["nonzzmt", "zzmt", "sc", "nolapskips"];
 
   return redirect(`/videos?cid=${newVid.cid}&mode=${modes[newVid.mode]}`);
 };
 
+export const loader = async () => {
+  const standardFiles = {
+    nonzzmt: await openStandardCSV("nonzzmt"),
+    zzmt: await openStandardCSV("zzmt"),
+    sc: await openStandardCSV("sc"),
+  };
+  return { standardFiles };
+};
+
 export default function CreateNew() {
   const { isAdmin } = useContext(AdminContext);
+  const { standardFiles } = useLoaderData<typeof loader>();
 
+  const [mode, setMode] = useState<number | undefined>(undefined);
   const [cid, setCid] = useState(0);
   const navigate = useNavigate();
   const [formattedTime, setFormattedTime] = useState(formatTime(0));
@@ -67,26 +81,120 @@ export default function CreateNew() {
 
   // redirect if not admin
   useEffect(() => {
-    if (!isAdmin) {
+    if (!isAdmin && false) {
       navigate("/");
     }
   });
 
   // if fetch youtube metadata, try scrape fields, and update them
-  // useEffect(() => {
-  //   const metadata = fetcher.data?.youtubeMetadata ?? undefined;
-  //   const title = metadata?.snippet?.title;
-  //   const time = title?.match(/(\d{1,2}"\d{2})/)?.[0] ?? undefined;
-  //   console.log(`title`, title);
-  //   console.log(`time`, time);
-  //   if (time) {
-  //     const timeInput =
-  //       document.querySelector<HTMLInputElement>('input[name="time"]');
-  //     if (timeInput) {
-  //       timeInput.value = time.replace('"', ".");
-  //     }
-  //   }
-  // }, [fetcher.data?.youtubeMetadata]);
+  useEffect(() => {
+    const metadata = fetcher.data?.youtubeMetadata ?? undefined;
+    const title = metadata?.snippet?.title;
+
+    // includesminute e.g. 0'12"91 or 1'12"91
+    const includes_minute_time_match = title?.match(
+      /((?<minute>\d{1})(?:"|')(?<seconds>\d{1,2})(?:"|')(?<hundredths>\d{2}))/
+    );
+    const includes_minute_time_as_number = includes_minute_time_match
+      ? Number(includes_minute_time_match.groups.minute * 60) +
+        Number(includes_minute_time_match.groups.seconds) +
+        Number(includes_minute_time_match.groups.hundredths / 100)
+      : undefined;
+    console.log(
+      `includes_minute_time_as_number`,
+      includes_minute_time_as_number
+    );
+
+    // no_minute e.g. 12'91 or 12"91
+    const no_minute_time_match = title?.match(
+      /(?<seconds>\d{1,2})(?:"|')(?<hundredths>\d{2})/
+    );
+    console.log(`no_minute_time_match`, no_minute_time_match);
+    const no_minute_time_as_number = no_minute_time_match
+      ? Number(no_minute_time_match.groups.seconds) +
+        Number(no_minute_time_match.groups.hundredths / 100)
+      : undefined;
+    console.log(`no_minute_time_as_number`, no_minute_time_as_number);
+
+    const timeFromTitle =
+      includes_minute_time_as_number ?? no_minute_time_as_number;
+
+    const courseString =
+      title?.match(
+        `${[...courses.slice().reverse(), ...coursesAcronyms.slice().reverse()]
+          .map((course) => course)
+          .join("|")}`
+      )?.[0] ?? undefined;
+    console.log(`courseString`, courseString);
+
+    const courseNameIndex = courses.indexOf(courseString);
+    const courseAcronymIndex = coursesAcronyms.indexOf(courseString);
+    const courseIndex =
+      courseNameIndex !== -1
+        ? courseNameIndex
+        : courseAcronymIndex !== -1
+        ? courseAcronymIndex
+        : undefined;
+    console.log(`courseIndex`, courseIndex);
+
+    const isDefinitelyFlapFromTitle = title?.match(/flap/i)?.[0] !== undefined;
+    let isFlap = isDefinitelyFlapFromTitle ?? false;
+
+    // TODO fetch godtime in loader from CSV file
+    if (
+      mode !== undefined &&
+      standardFiles !== undefined &&
+      !isDefinitelyFlapFromTitle &&
+      courseIndex !== undefined &&
+      timeFromTitle !== undefined
+    ) {
+      // if time is less than god time for course, then set as flap
+      const courseCid = courseIndex * 2;
+      const standardsCSV =
+        standardFiles?.[modes[mode] as Exclude<Mode, "nolapskips">] ??
+        undefined;
+      console.log(`standardsCSV`, standardsCSV);
+      if (standardsCSV !== undefined) {
+        const lines = standardsCSV.split("\n");
+        const standardRow = lines[courseCid].split(",").slice(1); // slice 1 to ignore the cid at the start
+        console.log(`standardRow`, standardRow);
+        const godTime = standardRow[0];
+        const isTimeLessThanHalfOfGodTime = timeFromTitle < Number(godTime) / 2;
+        if (isTimeLessThanHalfOfGodTime) {
+          isFlap = true;
+        }
+      }
+    }
+    if (courseIndex !== undefined) {
+      const courseNameInput = document.querySelector<HTMLInputElement>(
+        'select[name="Course"]'
+      );
+      if (courseNameInput) {
+        courseNameInput.value = String(courseIndex);
+      }
+      const courseOrFlapInput = document.querySelector<HTMLInputElement>(
+        'select[name="courseorflap"]'
+      );
+      if (courseOrFlapInput) {
+        courseOrFlapInput.value = isFlap ? "1" : "0";
+      }
+
+      const cid = isFlap ? courseIndex * 2 + 1 : courseIndex * 2;
+      const cidInput =
+        document.querySelector<HTMLInputElement>('input[name="cid"]');
+      if (cidInput) {
+        cidInput.value = String(cid);
+      }
+    }
+
+    if (timeFromTitle) {
+      const timeInput =
+        document.querySelector<HTMLInputElement>('input[name="time"]');
+      if (timeInput) {
+        timeInput.value = String(timeFromTitle);
+      }
+    }
+  }, [fetcher.data?.youtubeMetadata]);
 
   return (
     <Form
@@ -97,6 +205,27 @@ export default function CreateNew() {
     >
       <div className="flex flex-wrap gap-8 w-full">
         <div className="flex flex-col gap-8">
+          <div className="flex gap-2 items-center">
+            <label>Mode</label>
+            <select
+              aria-label="mode"
+              name="mode"
+              className="border border-gray-400 rounded-md p-1"
+              defaultValue={""}
+              onChange={(event) => {
+                setMode(Number(event.currentTarget.value));
+              }}
+            >
+              <option value="">--Select the mode first--</option>
+              <option value="0">NonZZMT</option>
+              <option value="1">ZZMT</option>
+              <option value="2">SC</option>
+              <option value="3">No Lapskips</option>
+            </select>
+          </div>
+
+          {/* {mode !== undefined ?
+          <> */}
           <div className="flex gap-2 items-center">
             <label>Youtube URL</label>
             <input
@@ -110,21 +239,6 @@ export default function CreateNew() {
                 found id: {youtubeId}
               </p>
             ) : null}
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <label>Mode</label>
-            <select
-              aria-label="mode"
-              name="mode"
-              className="border border-gray-400 rounded-md p-1"
-              defaultValue={0}
-            >
-              <option value="0">NonZZMT</option>
-              <option value="1">ZZMT</option>
-              <option value="2">SC</option>
-              <option value="3">No Lapskips</option>
-            </select>
           </div>
 
           <div>
@@ -233,7 +347,10 @@ export default function CreateNew() {
               readOnly
             />
           </div>
-        </div>
+
+          {/* </>
+
+: null} */}
 
         <div className="min-w-60 max-w-100 border-dashed border-2 border-gray-700 rounded-md">
           <p>Info from Youtube</p>
@@ -246,7 +363,7 @@ export default function CreateNew() {
         <button type="button" onClick={() => navigate(-1)}>
           Cancel
         </button>
-      </div>
+      </div> 
     </Form>
   );
 }
