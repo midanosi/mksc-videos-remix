@@ -80,10 +80,14 @@ function Index() {
           <div className="bg-gray-50 flex p-2 gap-8 rounded-md">
             <p>You are signed out</p>
             <div>
-              <Link to="/sign-in">Go to Sign in</Link>
+              <Link to="/sign-in" className="underline">
+                Sign in
+              </Link>
             </div>
             <div>
-              <Link to="/sign-up">Go to Sign up</Link>
+              <Link to="/sign-up" className="underline">
+                Sign up
+              </Link>
             </div>
           </div>
         </SignedOut>
