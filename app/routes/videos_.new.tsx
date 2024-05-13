@@ -195,7 +195,16 @@ export default function CreateNew() {
         timeInput.value = String(timeFromTitle);
       }
     }
-  }, [fetcher.data?.youtubeMetadata]);
+
+    if (fetcher.data?.playerName) {
+      const playerInput = document.querySelector<HTMLInputElement>(
+        'input[name="player"]'
+      );
+      if (playerInput) {
+        playerInput.value = String(fetcher.data?.playerName);
+      }
+    }
+  }, [fetcher.data?.youtubeMetadata, fetcher.data?.playerName]);
 
   return (
     <div className="my-10 mx-8 flex flex-wrap gap-8 w-screen">
