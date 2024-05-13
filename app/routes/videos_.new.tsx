@@ -51,27 +51,6 @@ export const loader = async (args: LoaderFunctionArgs) => {
   if (!userId) {
     return redirect("/sign-in");
   }
-  const user = await createClerkClient({
-    secretKey: process.env.CLERK_SECRET_KEY,
-  }).users.getUser(userId);
-  const emailAddress = user.emailAddresses[0]?.emailAddress;
-  const discordUserId = user.externalAccounts[0]?.externalId;
-
-  const isAdmin = await db.admins.findFirst({
-    where: {
-      OR: [
-        {
-          email_address: emailAddress,
-        },
-        {
-          discord_user_id: discordUserId,
-        },
-      ],
-    },
-  });
-  if (!isAdmin) {
-    return redirect("/");
-  }
 
   const standardFiles = {
     nonzzmt: await openStandardCSV("nonzzmt"),
